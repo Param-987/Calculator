@@ -2,7 +2,7 @@ body{
     background-color: #6D9886;
 }
 .calc{
-    max-width: 30%;
+    max-width:40%;
     margin:10% auto;
     display: flex;
     flex-wrap: wrap;
@@ -10,14 +10,16 @@ body{
     
 }
 .but{
+    box-sizing: border-box;
     text-align: center;
-    flex-basis: 20%;
+    flex-basis: 18%;
     min-width: 10%;
     background-color: #E5DCC3;
     height: 40px;
     font-size: 25px;
+    padding-top: 5px;
+    flex-basis: 20%;
     border:1px solid grey;
-    display: inline-block;
 }
 .ope{
     background-color: #9A9483;
@@ -31,9 +33,9 @@ body{
 .input{
     background-color: #6B4F4F;
     color: white;
-    flex-basis: 81.50%;
+    flex-basis: 100%;
+    min-width: inherit;
     text-align: right;
-    /* box-sizing: border-box; */
     min-height: 60px;
 }
 .input:hover{cursor:default;}
