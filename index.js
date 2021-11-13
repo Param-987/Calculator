@@ -1,84 +1,97 @@
-var str = "",paro = new Array,operator = ['+','-','*','/'],erase = false;
+var str = "",paro = new Array,operator = ['+','-','*','/'],op2 =['+','*','/','!','%'] ,erase = false;
 
 function exp(char){
-  if(!str && operator.includes(char)) return;
-  if(char.toString().match(/[0-9π]/)  && str.match(/[)π]$/))  str = str.concat('*')
+  if(str =='NaN' && char !='rem') return;
+  if(char === '√') {
+    if(str.match(/[0-9π!]$/)) str = str.concat('*');
+    str = str.concat('√'); char = '('
+  }
+  if(char =='%'){
+    if(str.match(/[^0-9π)]$/))  return;
+    
+    
+  }
+ 
+  str = validation(char);
+  if(!str && op2.includes(char)) return ;
+  if(char.toString().match(/[0-9π]/)  && str.match(/[)π]$/))  str = str.concat('*') // ensure 5π and )5 is written as 5*π and )*5
   if(char ==='.' && str.match(/[.]\d*$/)) return
-  if(char === 'err' && erase) {str=''; erase = false} // to remove all character after press =
-  if(erase) return // after equal button press , first remove the output
-  if(char === '('){ paro.push('('); 
-  if(str.match(/[0-9]$/)) str = str.concat('*');
-}// to get record of  ()
-else if(char ===')' && (paro.length === 0 || str.match(/[()]$/))) return   // did take ) as input if corresponding ( didnot sustain
+  if(char === '('){ paro.push('(');  // to get record of  ()
+  if(str.match(/[0-9π!]$/)) str = str.concat('*');  // to ensure 4( is written as 4*(
+  
+}
+else if(char ===')' && (paro.length === 0 || str.match(/[(]$/))) return   // did take ) as input if corresponding ( didnot sustain
 else if(char === ')') paro.pop() ;   // erase ( to match )
 
 
 if(operator.includes(char) && operator.includes(str.charAt(str.length-1))) str = str.slice(0,str.length-1);  // one operator at a time
   if(char === 'err') str = str.slice(0,str.length-1);  // erase a character
+  else if( char ==='rem') str ="";
   else str = str.concat(char);  // add a charcter to string
   document.querySelector('.input').innerHTML = str;
 }
 
 function Ans(){
-    str = str.concat('?');
-    if(str.match(/\dπ/)) str = str.replace('π','*3.14')
-    str = str.replace(/π/g,'3.14')
-    var x=0,stack = new Array;
-    while(str[x]!='?'){
-              
-              if(str[x] === '(') stack.push(x);
-              else if(str[x] === ')'){ var res = evaluate(str.slice(stack[stack.length-1]+1,x)); 
-                  res = res.toString()
-              str = str.slice(0,stack[stack.length-1]).concat(res,str.slice(x+1))
-              x =  Number(stack[stack.length-1])-1;
-              stack.pop()
-      }
-      x++;
-      }
-    str = (evaluate(str.slice(0,str.length-1))).toString();
-    if(str == 'NaN') document.querySelector('.input').innerHTML ='Error'
-    else document.querySelector('.input').innerHTML = str ;
-    erase = true;
     
+    if(str.match(/!/)) str = fact(str); 
+    if(str.match(/√/)) str= sqrt(str);
+    str = str.replace(/\^/g,'**');
+    str = str.replace(/%/g,'/100');
+    if(str.match(/\dπ/)) str = str.replace('π',`*${Math.PI}`)
+    str = str.replace(/π/g,Math.PI.toString())
+    try{
+      eval(str)
+      
+    }catch(e){
+      str ='NaN'
+    }
+    if(str!='NaN'){
+      str = eval(str);
+      str = str.toString();
+    }
+    if(str == 'NaN' || !str) document.querySelector('.input').innerHTML ='Error'
+    else document.querySelector('.input').innerHTML = str ;
+   
+}
+function validation(char){
+  if(str.match(/[!%]$/) && char >=0 && char <= 9) str =  str.concat('*') // ensure !9 should be !*9
+  return str;
 }
 
+function sqrt(str){
 
-function evaluate(str) {
-  str = str.replace(/-/g,'+-')
-  var arr1 = str.match(/[^()+*/]*/g)
-  var arr2 = str.match(/[()*+/]/g);
-  var arr1 = arr1.filter((num)=> num !='')
-  var num = arr1.map((num) => Number(num));
-  var res = new Array();
-  res.push(num[0]);
-  for (x in arr2) {
-    x = Number(x);
-    if(arr2[x] === '-') { res.push('+'); res.push(-1*num[x + 1]); }
-    else if(arr2[x] === '/') { res.push('*'); res.push(1/num[x + 1]); }
-    else { res.push(arr2[x]); res.push(num[x + 1]); }
-  }
-  var len = res.length;
-  for (var x = 0; x < len; x++) {
-    // multiplication
-    if (res[x] === "*") {
-      res[x - 1] = res[x - 1] * res[x + 1];
-      res.splice(x, 2);
-      x--;
+  while(str.match(/√/)){
+    var a = str.indexOf('√'),b;
+    var st = new Array();
+
+    for(b=a+1;b<str.length;b++){
+      if(str[b]=='(') st.push('(');
+      else if(str[b]==')') st.pop();
+
+      if(st.length==0) break;
     }
+    str= `${str.slice(0,a)}${str.slice(a+1,b)}**0.5${str.slice(b)}`;
   }
-  len = res.length;
-  var result = 0;
-  for (var x = 0; x < len; x++) {
-    if (res[x] !== "+") {
-      result += res[x];
-    }
-  }
-  return result;
+  return str;
 }
 
-// function validati
+function fact(str){
+  while(str.match(/\d*!/)){
+    var a = str.match(/\d*!/);
+    a=Number(a[0].slice(0,a[0].length-1));
+    var res= 1;
+    while(a>0){
+      res*=a;
+      a--;
+    }
+    str = str.replace(/\d*!/,`${res}`);
+  }
+  return str;
+}
 
-
+document.addEventListener('keydown',(e)=>{
+if(e.code ==='Backspace') exp('err');
+})
 
 document.addEventListener('keypress',(e)=>{
   var c= e.charCode;
@@ -88,3 +101,8 @@ document.addEventListener('keypress',(e)=>{
   }
   if(c == 13 && str) Ans();
 },false)
+
+
+
+// ensure there must be a operator or there should be no string  before ( 
+// - pe work krna h 
